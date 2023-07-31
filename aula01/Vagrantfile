@@ -2,7 +2,7 @@
 # vi: set ft=ruby :
 
 Vagrant.configure("2") do |config|
-  config.vm.box = "ubuntu/focal64"
+  config.vm.box = "ubuntu/trusty64"
 
   config.vm.provider "virtualbox" do |vb|
     vb.memory = 1024
@@ -25,9 +25,17 @@ Vagrant.configure("2") do |config|
     
     ansible.vm.provision "shell",
       inline: "apt-get update && \
-               apt-get install -y software-properties-common && \
-               apt-add-repository --yes --update ppa:ansible/ansible && \
-               apt-get install -y ansible"
+              apt-get install -y software-properties-common && \
+              apt-add-repository --yes ppa:ansible/ansible && \
+              apt-get update && \
+              apt-get install -y ansible"
+
+    # ansible.vm.provision "shell",
+    #   inline: "apt-get update && \
+    #           apt-get install -y software-properties-common && \
+    #           add-apt-repository --yes ppa:fkrull/deadsnakes && \
+    #           apt-get update && \
+    #           apt-get install -y python3.5"
 
     ansible.vm.provision "shell",
       inline: "cp /vagrant/id_focal64 /home/vagrant/.ssh/ \
