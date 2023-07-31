@@ -9,16 +9,15 @@ Vagrant.configure("2") do |config|
     vb.cpus = 1
   end
   
-  config.vm.define "phpweb" do |phpweb|
-    phpweb.vm.provider "virtualbox" do |vb|
-      vb.memory = 1024
+  config.vm.define "wordpress" do |wordpress|
+    wordpress.vm.provider "virtualbox" do |vb|
+      vb.memory = 2048
       vb.cpus = 1
-      vb.name = "ubuntu_focal_php"
     end    
-    phpweb.vm.network "public_network", ip: "192.168.1.18", bridge: "enp0s31f6"
+    wordpress.vm.network "public_network", ip: "192.168.1.18", bridge: "enp0s31f6"
 
-    phpweb.vm.provision "shell",
-      inline: "cat /configs/id_focal64.pub >> .ssh/authorized_keys"
+    wordpress.vm.provision "shell",
+      inline: "cat /vagrant/configs/id_focal64.pub >> .ssh/authorized_keys"
   end
   
     config.vm.define "ansible" do |ansible|

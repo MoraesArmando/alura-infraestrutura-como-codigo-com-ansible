@@ -13,3 +13,17 @@ O Ansible é uma ferramenta para garantirmos esse estado. Ansible usa os scripts
 - Arquivo de inventário: que irá levantar as máquinas que serão configuradas;
 - Playbook: "receita" que nos diz o que devemos fazer;
 - Roles: permite modularizar o código.
+
+## Comandos
+
+$ ansible wordpress -i ./hosts -a "echo Hello, World!!!" -m shell
+
+$ ansible wordpress -u vagrant --private-key .vagrant/machines/wordpress/virtualbox/private_key -i hosts -m shell -a 'echo Hello, World'
+
+**erro UNREACHABLE:***
+$ ssh-keygen -t rsa
+$ ssh-copy-id -i vagrant_id_rsa.pub vagrant@172.17.177.40
+Obs: Talvez esteja necessário remover o arquivo ~/.ssh/known_hosts.
+
+
+ansible-playbook -i ./hosts ./playbook.yml 
