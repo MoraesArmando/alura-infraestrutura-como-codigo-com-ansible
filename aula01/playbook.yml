@@ -1,30 +1,14 @@
-- hosts: all
+- hosts: database
   handlers:
-    - name: restart apache2
-      service:
-        name: apache2
+    - name: restart mysql
+      service: 
+        name: mysql
         state: restarted
       become: yes
   tasks:
-    ## DEPRECATION WARNING
-    # - name: 'Instala pacotes de dependencia do sistema operacional'
-    #   apt:
-    #     name: "{{ item }}"
-    #     state: latest
-    #   become: yes
-    #   with_items:
-    #     - php5
-    #     - apache2
-    #     - libapache2-mod-php5
-    #     - php5-gd
-    #     - libssh2-php
-    #     - php5-mcrypt
-    #     - mysql-server-5.6
-    #     - python-mysqldb
-    #     - php5-mysql
     - name: 'Instala pacotes de dependencia do sistema operacional'
       apt:
-        name: ['php5', 'apache2', 'libapache2-mod-php5', 'php5-gd', 'libssh2-php', 'php5-mcrypt', ' mysql-server-5.6', ' python-mysqldb', '  php5-mysql']
+        name: ['mysql-server-5.6', ' python-mysqldb']
         state: latest
       become: yes
 
@@ -33,7 +17,7 @@
         name: wordpress_db
         login_user: root
         state: present
-
+    
     - name: 'Cria usuário com todos os privilégios'
       mysql_user:
         login_user: root
@@ -41,22 +25,53 @@
         password: 12345
         priv: 'wordpress_db.*:ALL'
         state: present
+        host: '{{ item }}'
+      with_items:
+        - 'localhost'
+        - '127.0.0.1'
+        - '192.168.1.18'
+    
+    - name: 'Copia o arquivos my.cnfdo host para o gest'
+      copy:
+        src: /vagrant/files/my.cnf
+        dest: /etc/mysql/my.cnf
+      become: yes
+      notify:
+        - restart mysql
+
+- hosts: wordpress
+  handlers:
+    - name: restart apache2
+      service:
+        name: apache2
+        state: restarted
+      become: yes
+  tasks:
+    - name: 'Instala pacotes de dependencia do sistema operacional'
+      apt:
+        name: ['php5', 'apache2', 'libapache2-mod-php5', 'php5-gd', 'libssh2-php', 'php5-mcrypt', '  php5-mysql']
+        state: latest
+      become: yes
+
     - name: 'Download do wordpress'
       get_url:
         url: https://wordpress.org/wordpress-3.9.40.tar.gz
         dest: /tmp/wordpress.tar.gz
+
     - name: 'Descompactar o arquivo tar.gz do wordpress'
       unarchive:
         src: /tmp/wordpress.tar.gz
         dest: /var/www/
         remote_src: yes
       become: yes
+
     - name: 'Copia os arquivos do wordpress do gest para o host'
       copy:
         src: /var/www/wordpress/wp-config-sample.php 
         dest: /var/www/wordpress/wp-config.php
         remote_src: yes
       become: yes
+
     - name: 'Configura o arquivo wp-confih.php de acordo com o datasource'
       replace:
         path: /var/www/wordpress/wp-config.php
@@ -66,7 +81,9 @@
         - { regex: 'database_name_here', value: 'wordpress_db'}
         - { regex: 'username_here', value: 'wordpress_user'}
         - { regex: 'password_here',value: '12345'}
+        - { regex: 'localhost',value: '192.168.1.20'}
       become: yes
+
     - name: 'Copia o arquivos 000-default.conf do host para o gest'
       copy:
         src: /vagrant/files/000-default.conf
